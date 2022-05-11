@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "cypress", 
+      "@testing-library/cypress",
+    ],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "resolveJsonModule":true
+  },
+  "exclude": [],
+  "include": ["**/*.ts"]
+}
