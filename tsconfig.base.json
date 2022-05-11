@@ -13,13 +13,6 @@
       "es6"
     ],
     "esModuleInterop": true,
-    "allowJs": true,
-    "outDir": "./lib"
-  },
-  "include": [
-    "./src"
-  ],
-  "exclude": [
-    "/src/*.spec.ts"
-  ]
+    "allowJs": true
+  }
 }

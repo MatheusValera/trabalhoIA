@@ -1,25 +1,53 @@
 {
   "rules": {
+    "@typescript-eslint/strict-boolean-expressions": "off",
+    "@typescript-eslint/consistent-type-definitions": "off",
+    "@typescript-eslint/comma-spacing": "off",
+    "@typescript-eslint/return-await": "off",
+    "no-case-declarations": "off",
     "no-console": 0,
+    "no-multi-str": 0,
+    "global-require": 0,
     "no-underscore-dangle": 0,
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
     "no-use-before-define": ["error", { "variables": false }],
-    "no-multi-str": 0,
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true, "optionalDependencies": false, "peerDependencies": false}],
     "linebreak-style": ["error", "unix"],
     "semi": [2, "never"],
     "camelcase": 0,
     "no-param-reassign": [2, { "props": false }],
-    "prefer-destructuring": [2, { "array": false, "object": false }]
+    "prefer-destructuring": [2, { "array": false, "object": false }],
+    "prettier/prettier": [
+      "error", {
+        "semi": false,
+        "singleQuote": true,
+        "trailingComma": "all"
+      }
+    ],
+    "cypress/no-unnecessary-waiting": "error",
+    "cypress/no-assigning-return-values": "error",
+    "cypress/assertion-before-screenshot": "warn"
   },
   "env": {
-    "node": true,
-    "mocha": true
+    "es6": true,
+    "browser": true,
+    "cypress/globals": true
   },
   "parserOptions": {
-    "ecmaVersion": 2018
+    "project": "./tsconfig.json",
+    "ecmaVersion": 8,
+    "sourceType": "module",
+    "allowImportExportEverywhere": true
   },
   "extends": [
-    "airbnb-base"
+    "standard-with-typescript",
+    "airbnb-base",
+    "plugin:cypress/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
+    "cypress",
+    "prettier"
   ]
 }
