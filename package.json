@@ -1,0 +1,11 @@
+{
+  "name": "trab-ia",
+  "version": "1.0.0",
+  "description": "MLP work developed for the subject of Artificial Intelligence",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MatheusValera LuanBonifacio",
+  "license": "ISC"
+}
