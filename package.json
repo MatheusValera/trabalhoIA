@@ -4,7 +4,9 @@
   "description": "MLP work developed for the subject of Artificial Intelligence",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
   },
   "author": "MatheusValera LuanBonifacio",
   "license": "ISC",
@@ -14,7 +16,6 @@
   "devDependencies": {
     "@types/node": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
-    "clean-webpack-plugin": "^4.0.0",
     "eslint": "^8.15.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
@@ -26,9 +27,6 @@
     "lint-staged": "^12.4.1",
     "prettier": "^2.6.2",
     "ts-loader": "^9.3.0",
-    "typescript": "^4.6.4",
-    "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2",
-    "webpack-node-externals": "^3.0.0"
+    "typescript": "^4.6.4"
   }
 }
