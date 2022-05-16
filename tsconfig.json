@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitAny": false,
+    "removeComments": false,
+    "noLib": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es6",
+    "sourceMap": true,
+    "lib": [
+      "es6"
+    ],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "outDir": "./lib"
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "/src/*.spec.ts"
+  ]
+}
