@@ -3,6 +3,7 @@ import fs from 'fs'
 import { Training } from '../class/Training'
 import { HiddenLayer } from '../class/HiddenLayer'
 import { Neuron } from '../class/Neuron'
+import { Graph } from '../class/Graph'
 
 const readFile = async (nameFile: string): Promise<any> => {
   const file = fs.readFileSync('../tests/' + nameFile,'utf-8')
@@ -63,9 +64,9 @@ const valueResults = (list: any): any => {
 
 const generateLayers = (list: any): any => {
   let training: Training[]
-  // const entry = list[0].length - 1
+  const entry: number = list[0].length - 1
   const entries = []
-  // const exit = valueResults(list).length
+  const exit: number = valueResults(list).length
 
   for (const line in list) {
     const auxTraining: Training = new Training()
@@ -76,10 +77,10 @@ const generateLayers = (list: any): any => {
     training.push(auxTraining)
   }
 
-  return training
+  return { training, entry, exit, hiddens: (entry + exit) / 2 }
 }
 
-const desiredMatrix = (list: any, exit: number, selected: number): any => {
+const desiredMatrix = (exit: number, selected: number): any => {
   const desiredMatrix = generateMatrix(exit,exit)
   for (let i = 0; i < exit; i++) {
     for (let j = 0; j < exit; j++) {
@@ -98,30 +99,32 @@ const selectedTest = async (nameFile: string): Promise<void> => {
   await normalize(data)
 }
 
-const executeTest = async (nameFile: string, exit: number, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<any> => {
+const executeTest = async (nameFile: string, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<{}> => {
   const matrixTest = await readFile(nameFile)
-  const training = generateLayers(matrixTest)
+  const { training, entries, exit, hidden } = generateLayers(matrixTest)
+
   let hiddenWeights = []
   let exitWeights = []
+  let desiredExit = 0
+  let iterationError = -10000
+  let lineError = 0
+  const iterationE = []
+  const values = valueResults(matrixTest)
+  const desiredM = desiredMatrix(exit, exitType)
+  const hiddenWeightsFinal = []
+  const exitWeightsFinal = []
+  const hiddenVet = []
+  const exitErrors = []
+
   if (matrixTest) {
-    let desiredExit = 0
-    let iterationError = -10000
-    let entries, hiddens
-    let lineError = 0
-    const iterationE = []
-    const values = valueResults(matrixTest)
-    const desiredM = desiredMatrix(matrixTest, exit, exitType)
-    const hiddenWeightsFinal = []
-    const exitWeightsFinal = []
-    const hiddenVet = []
-    const exitErrors = []
-    let hiddenMatrix = generateMatrix(hiddens, entries)
-    let exitMatrix = generateMatrix(exit,hiddens)
+    let hiddenMatrix = generateMatrix(hidden, entries)
+    let exitMatrix = generateMatrix(exit,hidden)
+
     let weight = 1
     training.forEach((train) => {
-      train.hiddenLayer = new HiddenLayer(entries,hiddens,exit)
+      train.hiddenLayer = new HiddenLayer(entries,hidden,exit)
       train.exitLayer = []
-      for (let i = 0; i < exit; i++) { train.exitLayer.push(new Neuron()) }
+      for (let i = 0; i < train.exitLayer; i++) { train.exitLayer.push(new Neuron()) }
       train.hiddenLayer.generatedWeight(entries,exit)
       weight++
     })
@@ -144,7 +147,7 @@ const executeTest = async (nameFile: string, exit: number, minError: number, nro
             }
             hiddenWeightsFinal[desiredExit] = train.hiddenLayer.hiddenWeights
             exitWeightsFinal[desiredExit] = train.hiddenLayer.exitWeights
-            for (let j = 0; j < hiddens; j++) {
+            for (let j = 0; j < hidden; j++) {
               train.hiddenLayer.hiddenLayer[j].calculatedNet(train.layerEntries, train.hiddenLayer.exitWeights,j)
               switch (exitType) {
                 case 1: train.hiddenLayer.hiddenLayer[j].linear()
@@ -155,7 +158,7 @@ const executeTest = async (nameFile: string, exit: number, minError: number, nro
                   break
               }
             }
-            for (let k = 0; k < hiddens; k++) { hiddenVet.push(train.hiddenLayer.hiddenLayer[k].obtained) }
+            for (let k = 0; k < hidden; k++) { hiddenVet.push(train.hiddenLayer.hiddenLayer[k].obtained) }
             for (let j = 0; j < exit; j++) {
               train.exitLayer[k].calculatedNet(hiddenVet, train.hiddenLayer.exitWeights,j)
               switch (exitType) {
@@ -169,7 +172,7 @@ const executeTest = async (nameFile: string, exit: number, minError: number, nro
               train.exitLayer[j].calculatedExitError(desiredM[j][desiredExit])
             }
             for (let k = 0; k < exit; k++) { exitErrors.push(train.exitLayer[k].error) }
-            for (let k = 0; k < hiddens; k++) { train.hiddenLayer.hiddenLayer[k].calculatedHiddenError(exitErrors, train.hiddenLayer.exitWeights,k) }
+            for (let k = 0; k < hidden; k++) { train.hiddenLayer.hiddenLayer[k].calculatedHiddenError(exitErrors, train.hiddenLayer.exitWeights,k) }
             train.hiddenLayer.correctExitWeight(rateLearning, exitErrors)
             train.hiddenLayer.correctWeightsHidden(rateLearning, train.layersEntries)
             train.calculatedNetworkError()
@@ -183,24 +186,109 @@ const executeTest = async (nameFile: string, exit: number, minError: number, nro
           count++
         }
         iterationError = iterationError / (matrixTest.length - 1)
-        if ((i + 1) % 10 === 0) { iterationE.push([]) }// FAZER A CLASSE GRAFICO
-        else if (iterationError < minError) { iterationE.push([]) }
+        if ((i + 1) % 10 === 0) { iterationE.push([new Graph(iterationError, i + 1)]) }
+        else if (iterationError < minError) { iterationE.push([new Graph(iterationError, i + 1)]) }
         i++
       })
     } while (i < nroIterations && iterationError >= minError)
+
+    return { training, hiddenWeightsFinal, exitWeightsFinal, hiddenWeights, exitWeights, dataGraph: iterationE }
   }
 }
 
-// const execute = async (exitType: number, nameFile: string): Promise<any> => {
-//   const matrix = await readFile(nameFile)
-//   const values = valueResults(matrix)
-//   const entries = []
-//   const exit = values.length
+const execute = async (nameFile: string, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<any> => {
+  const matrix = await readFile(nameFile)
+  const entries = []
+  const { training, hiddenWeightsFinal, exitWeightsFinal, hiddenWeights, exitWeights } = await executeTest('base_treinamento.csv',minError,nroIterations,rateLearning,exitType)
+  let desiredExit = 0
+  const values = valueResults(matrix)
+  const exit = values.length
+  const desiredM = desiredMatrix(matrix,exit,exitType)
+  const matConf = generateMatrix(exit,exit)
+  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+  const hiddens = (matrix[0].length + exit) / 2
+  training.forEach((train) => {
+    train.hiddenLayer = new HiddenLayer(matrix[0].length,hiddens,exit)
+    train.exitLayer = []
+    for (let i = 0; i < exit; i++) { train.exitLayer.push(new Neuron()) }
+  })
+  const count = 0
+  training.forEach((train) => {
+    if (count !== matrix.length - 1) {
+      let index = matrix[count]
+      for (let i = 0; i < exit; i++) {
+        if (index === values[i])
+        {
+          desiredExit = i
+          i = exit
+        }
+      }
+      train.hiddenLayer.hiddenWeights = hiddenFinalWeights[desiredExit]
+      train.hiddenLayer.exitWeights = exitFinalWeights[deseiredExit]
+      const hiddenVet = []
+      const obtainedVet = []
+      for (let i = 0; i < hiddens; i++) {
+        train.hiddenLayer.hiddenLayer[i].calculatedNet(train.layersEntries, train.hiddenLayer.hiddenWeights,i)
+        switch (exitType) {
+          case 1: train.hiddenLayer.hiddenLayer[i].linear()
+            break
+          case 2: train.hiddenLayer.hiddenLayer[i].logistic()
+            break
+          default: train.hiddenLayer.hiddenLayer[i].hiperbolic()
+            break
+        }
+      }
+      for (let i = 0; i < hiddens; i++) {
+        hiddenVet.push(train.hiddenLayer.hiddenLayer[i].obtained)
+      }
+      for (let i = 0; i < exit; i++) {
+        train.exitLayer[i].calculatedNet(hiddenVet, train.hiddenLayer.exitWeights,i)
+        switch (exitType) {
+          case 1: train.exitLayer[i].linear()
+            break
+          case 2: train.exitLayer[i].logistic()
+            break
+          default: train.exitLayer[i].hiperbolic()
+            break
+        }
+        obtainedVet.push(train.exitLayer[i].obtained)
+      }
+      let bigger = obtainedVet[0]
+      let posBigger = 0
+      for (let i = 0; i < exit; i++)
+      {
+        if (bigger < obtainedVet[i])
+        {
+          bigger = obtainedVet[i]
+          posBigger = i
+        }
+      }
+      const vet = []
+      for (let i = 0; i < exit; i++) { vet.push(0) }
+      for (let i = 0; i < matrix.length; i++) {
+        index = matrix[i][matrix[0].length - 1]
+        for (let j = 0; j < exit; j++) {
+          if (index === valueResults[j])
+          {
+            desiredExit = j
+            vet[desiredExit]++
+          }
+        }
+      }
+      let sum1 = 0; let sum2 = 0
+      const tags = []
+      for (let i = 0; i < exit; i) {
+        const value = matConf[i][i]
+        sum1 += value
+        sum2 += vet[i]
+      }
 
-//   const desiredExit = 0
-//   const desiredM = desiredMatrix(matrix,exit,exitType)
-//   const matConf = generateMatrix(exit,exit)
-//   for
-// }
+      const hits = sum1 * 100 / sum2
+      tags.push({ option: `Acertos: ${hits}`, value: hits })
+      if (100 - hits != 0)
+      { tags.push({ option: `Acertos: ${hits}`, value: 100 - hits }) }
+    }
+  })
+}
 
-export { readFile, normalize, valueResults, selectedTest, generateLayers, desiredMatrix, executeTest }
+export { normalize, valueResults, selectedTest, generateLayers, desiredMatrix, executeTest,execute }
