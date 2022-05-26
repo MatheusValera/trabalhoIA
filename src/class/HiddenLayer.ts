@@ -8,13 +8,30 @@ export class HiddenLayer {
 
   constructor (qtdEntries?: number, qtdHidden?: number, qtdExit?: number) {
     if (qtdEntries && qtdHidden && qtdExit) {
-      this.hiddenLayer = new Neuron[qtdHidden]()
-      this.hiddenLayer.forEach((elem,i) => {
-        if (i < qtdHidden) { elem = new Neuron() }
-      })
-      this.hiddenLayer = new Number[qtdHidden][qtdEntries]()
-      this.exitWeights = new Number[qtdExit][qtdHidden]()
+      this.hiddenLayer = this.generateList(qtdHidden)
+      this.hiddenWeights = this.generateMatrix(qtdHidden,qtdEntries)
+      this.exitWeights = this.generateMatrix(qtdExit,qtdHidden)
     }
+  }
+
+  generateList (length: number): any {
+    const list = []
+    for (let i = 0; i < length; i++) {
+      list.push(new Neuron())
+    }
+
+    return list
+  }
+
+  generateMatrix (column: number, line: number): any {
+    const list = []
+    for (let i = 0; i < line; i++) {
+      list.push([])
+      for (let j = 0; j < column; j++) {
+        list[i].push(0)
+      }
+    }
+    return list
   }
 
   correctWeightsHidden (txAp: number, camEnt: number[]): void {

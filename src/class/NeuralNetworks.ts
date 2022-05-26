@@ -8,11 +8,19 @@ import { Graph } from '../class/Graph'
 const readFile = async (nameFile: string): Promise<any> => {
   const file = fs.readFileSync('../tests/' + nameFile,'utf-8')
   const list = file.split('\r\n')
-  const matrix = []
+  const fileAux = []
+  const fileReturn = []
   list.forEach(line => {
-    matrix.push(line.toString().split(','))
+    fileAux.push(line.toString().split(','))
   })
-  return matrix
+  fileAux.forEach(line => {
+    fileReturn.push([])
+    line.forEach(line => {
+      fileReturn[fileReturn.length - 1].push(parseInt(line) ? parseInt(line) : line)
+    })
+  })
+  // console.log('>>>>>> fileReturn: ', fileReturn)
+  return fileReturn
 }
 
 const generateMatrix = (column: number, line: number): any => {
@@ -52,18 +60,18 @@ const normalize = (list: any): void => {
 const valueResults = (list: any): any => {
   const col: number = list[0].length - 1
   let value: number
-
   const exitResult = []
 
   for (const line of list) {
-    value = line[line][col]
+    value = line[col]
     if (!exitResult.includes(value)) { exitResult.push(value) }
   }
+  // console.log('>>>>> Resutls: ', exitResult)
   return exitResult
 }
 
 const generateLayers = (list: any): any => {
-  let training: Training[]
+  const training: Training[] = []
   const entry: number = list[0].length - 1
   const entries = []
   const exit: number = valueResults(list).length
@@ -100,7 +108,17 @@ const selectedTest = async (nameFile: string): Promise<void> => {
 }
 
 const executeTest = async (nameFile: string, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<any> => {
-  const matrixTest = await readFile(nameFile)
+  const file = await readFile(nameFile)
+  const matrixTest = []
+  for (let i = 0; i < file.length; i++) {
+    if (i >= 1)
+    {
+      matrixTest.push([])
+      for (let j = 0; j < file[i].length - 1; j++) {
+        matrixTest[matrixTest.length - 1].push(file[i][j])
+      }
+    }
+  }
   const { training, entries, exit, hidden } = generateLayers(matrixTest)
 
   let hiddenWeights = []
@@ -124,7 +142,7 @@ const executeTest = async (nameFile: string, minError: number, nroIterations: nu
     training.forEach((train) => {
       train.hiddenLayer = new HiddenLayer(entries,hidden,exit)
       train.exitLayer = []
-      for (let i = 0; i < train.exitLayer; i++) { train.exitLayer.push(new Neuron()) }
+      for (let i = 0; i < exit; i++) { train.exitLayer.push(new Neuron()) }
       train.hiddenLayer.generatedWeight(entries,exit)
       weight++
     })
@@ -160,13 +178,14 @@ const executeTest = async (nameFile: string, minError: number, nroIterations: nu
             }
             for (let k = 0; k < hidden; k++) { hiddenVet.push(train.hiddenLayer.hiddenLayer[k].obtained) }
             for (let j = 0; j < exit; j++) {
-              train.exitLayer[k].calculatedNet(hiddenVet, train.hiddenLayer.exitWeights,j)
+              train.exitLayer[j].calculatedNet(hiddenVet, train.hiddenLayer.exitWeights,j)
+              // console.log('>>>>> train: ',train)
               switch (exitType) {
-                case 1: train.hiddenLayer.hiddenLayer[j].linear()
+                case 1: train.exitLayer[j].linear()
                   break
-                case 2: train.hiddenLayer.hiddenLayer[j].logistic()
+                case 2: train.exitLayer[j].logistic()
                   break
-                default: train.hiddenLayer.hiddenLayer[j].hiperbolic()
+                default: train.exitLayer[j].hiperbolic()
                   break
               }
               train.exitLayer[j].calculatedExitError(desiredM[j][desiredExit])
@@ -188,16 +207,27 @@ const executeTest = async (nameFile: string, minError: number, nroIterations: nu
         iterationError = iterationError / (matrixTest.length - 1)
         if ((i + 1) % 10 === 0) { iterationE.push([new Graph(iterationError, i + 1)]) }
         else if (iterationError < minError) { iterationE.push([new Graph(iterationError, i + 1)]) }
+        console.log('lopp test')
         i++
       })
     } while (i < nroIterations && iterationError >= minError)
-
+    console.log('sai test')
     return { training, hiddenFinalWeights, exitFinalWeights, hiddenWeights, exitWeights, dataGraph: iterationE }
   }
 }
 
 const execute = async (nameFile: string, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<any> => {
-  const matrix = await readFile(nameFile)
+  const file = await readFile(nameFile)
+  const matrix = []
+  for (let i = 0; i < file.length; i++) {
+    if (i >= 1)
+    {
+      matrix.push([])
+      for (let j = 0; j < file[i].length - 1; j++) {
+        matrix[matrix.length - 1].push(file[i][j])
+      }
+    }
+  }
   const { training, hiddenFinalWeights, exitFinalWeights } = await executeTest('base_treinamento.csv',minError,nroIterations,rateLearning,exitType)
   let desiredExit = 0
   const values = valueResults(matrix)
@@ -212,6 +242,7 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
   })
   let count = 0
   training.forEach((train) => {
+    console.log('lopp execute')
     if (count !== matrix.length - 1) {
       const index = matrix[count][matrix[0].length - 1]
       for (let i = 0; i < exit; i++) {
@@ -225,7 +256,8 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
       train.hiddenLayer.exitWeights = exitFinalWeights[desiredExit]
       const hiddenVet = []
       const obtainedVet = []
-      for (let i = 0; i < hiddens; i++) {
+      for (let i = 1; i < hiddens + 1; i++) {
+        // console.log('>>>>> ',train.hiddenLayer)
         train.hiddenLayer.hiddenLayer[i].calculatedNet(train.layersEntries, train.hiddenLayer.hiddenWeights,i)
         switch (exitType) {
           case 1: train.hiddenLayer.hiddenLayer[i].linear()
@@ -265,6 +297,7 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
       count++
     }
   })
+  console.log('sai')
   const vet: number[] = []
   for (let i = 0; i < exit; i++) { vet.push(0) }
   for (let i = 0; i < matrix.length - 1; i++) {
