@@ -233,7 +233,7 @@ const executeTest = async (nameFile: string, minError: number, nroIterations: nu
 
 const execute = async (nameFile: string, minError: number, nroIterations: number, rateLearning: number, exitType: number): Promise<any> => {
   const file = await readFile(nameFile)
-
+  console.log('............................. EXECUTE ...........................................')
   const matrix = []
   for (let i = 0; i < file.length; i++) {
     if (i >= 1)
@@ -247,10 +247,10 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
   const { training, hiddenFinalWeights, exitFinalWeights } = await executeTest('base_treinamento.csv',minError,nroIterations,rateLearning,exitType)
   let desiredExit = 0
   const values = valueResults(file)
-  const exit = values.length
+  const exit = values.length - 1
   const matConf = generateMatrix(exit,exit)
   // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-  const hiddens = (matrix[0].length + exit) / 2
+  const hiddens = (file[0].length + exit) / 2
   training.forEach((train) => {
     train.hiddenLayer = new HiddenLayer(matrix[0].length,hiddens,exit)
     train.exitLayer = []
@@ -259,8 +259,8 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
   let count = 0
   training.forEach((train) => {
     console.log('lopp execute')
-    if (count !== matrix.length - 1) {
-      const index = matrix[count][matrix[0].length - 1]
+    if (count !== file.length - 1) {
+      const index = file[count][matrix[0].length - 1]
       for (let i = 0; i < exit; i++) {
         if (index === values[i])
         {
@@ -270,11 +270,11 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
       }
       train.hiddenLayer.hiddenWeights = hiddenFinalWeights[desiredExit]
       train.hiddenLayer.exitWeights = exitFinalWeights[desiredExit]
-      const hiddenVet = []
-      const obtainedVet = []
-      for (let i = 1; i < hiddens + 1; i++) {
-        // console.log('>>>>> ',train.hiddenLayer)
+      for (let i = 0; i < hiddens; i++) {
+        console.log('pesos >>>>> ',i,train.hiddenLayer.hiddenLayer[i])
+        console.log('>>>>>>> ',train.layersEntries,train.hiddenLayer.hiddenWeights)
         train.hiddenLayer.hiddenLayer[i].calculatedNet(train.layersEntries, train.hiddenLayer.hiddenWeights,i)
+        console.log('********************************************************')
         switch (exitType) {
           case 1: train.hiddenLayer.hiddenLayer[i].linear()
             break
@@ -283,11 +283,16 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
           default: train.hiddenLayer.hiddenLayer[i].hiperbolic()
             break
         }
+        console.log(train.hiddenLayer.hiddenLayer[i])
+        console.log('sai ######################################################\n')
       }
+      const hiddenVet = []
       for (let i = 0; i < hiddens; i++) {
         hiddenVet.push(train.hiddenLayer.hiddenLayer[i].obtained)
       }
+
       for (let i = 0; i < exit; i++) {
+        console.log('exitWeights',train.hiddenLayer.exitWeights)
         train.exitLayer[i].calculatedNet(hiddenVet, train.hiddenLayer.exitWeights,i)
         switch (exitType) {
           case 1: train.exitLayer[i].linear()
@@ -297,7 +302,12 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
           default: train.exitLayer[i].hiperbolic()
             break
         }
-        obtainedVet.push(train.exitLayer[i].obtained)
+        console.log(train.exitLayer[i])
+        console.log('sai ######################################################\n')
+      }
+      const obtainedVet = []
+      for (let i = 0; i < exit; i++) {
+        hiddenVet.push(train.exitLayer[i].obtained)
       }
       let bigger = obtainedVet[0]
       let posBigger = 0
@@ -338,6 +348,7 @@ const execute = async (nameFile: string, minError: number, nroIterations: number
   tags.push({ option: `Acertos: ${hits}`, value: hits })
   if (100 - hits !== 0)
   { tags.push({ option: `Acertos: ${hits}`, value: 100 - hits }) }
+  console.log('RESULTADO >>>> ',tags)
 }
 
 export { normalize, valueResults, selectedTest, generateLayers, desiredMatrix, executeTest,execute }
