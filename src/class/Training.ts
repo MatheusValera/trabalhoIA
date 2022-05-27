@@ -6,12 +6,14 @@ export class Training {
   layersEntries: number[]
   hiddenLayer: HiddenLayer
   exitLayer: Neuron[]
-  networkError: number
+  networkError: number = 0
 
   constructor () {}
 
   calculatedNetworkError (): void {
-    for (const layer of this.exitLayer) { this.networkError += Math.pow(layer.error,2) }
+    for (const layer of this.exitLayer) {
+      this.networkError += Math.pow(layer.error,2)
+    }
     this.networkError = this.networkError * 0.5
   }
 }

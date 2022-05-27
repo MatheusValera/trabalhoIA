@@ -7,14 +7,17 @@ export class Neuron {
 
   calculatedNet = (layers: number[], weights: number[][], pos: number): void => {
     this.net = 0
-    for (const layer in layers) {
+    for (let layer = 0; layer < layers.length; layer++) {
+      console.log('estou aqui ',pos,layer)
+      console.log('conta >>>>',layers[layer],weights[pos][layer],'result',layers[layer] * weights[pos][layer])
+      console.log('----------------')
       this.net += layers[layer] * weights[pos][layer]
     }
   }
 
   linear = (): void => {
     this.obtained = this.net / 10.0
-    this.error = 0.1
+    this.derived = 0.1
   }
 
   logistic = (): void => {
@@ -28,13 +31,16 @@ export class Neuron {
   }
 
   calculatedExitError = (desejed: number): void => {
+    console.log('conta >>>>',desejed,this.obtained,this.derived,'result',(desejed - this.obtained) * this.derived)
     this.error = (desejed - this.obtained) * this.derived
   }
 
-  calculatedHiddenError = (layers: number[], weights: number[], pos: number): void => {
+  calculatedHiddenError = (layers: number[], weights: number[][], pos: number): void => {
     this.error = 0
     for (const layer in layers) {
-      this.error += layers[layer] * weights[layer][pos]
+      console.log('estou aqui ',pos,layer)
+      console.log('conta >>>>',layers[layer],weights[pos][layer],'result',layers[layer] * weights[pos][layer])
+      this.error += layers[layer] * weights[pos][layer]
     }
     this.error *= this.derived
   }

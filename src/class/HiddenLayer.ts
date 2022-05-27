@@ -23,7 +23,7 @@ export class HiddenLayer {
     return list
   }
 
-  generateMatrix (column: number, line: number): any {
+  generateMatrix (line: number, column: number): any {
     const list = []
     for (let i = 0; i < line; i++) {
       list.push([])
@@ -43,14 +43,21 @@ export class HiddenLayer {
   }
 
   correctExitWeight (txAp: number, error: number[]): void {
+    console.log(this.exitWeights,error)
     for (const err in error) {
-      for (const layer in this.hiddenLayer) { this.exitWeights[err][layer] = this.exitWeights[err][layer] + (txAp * error[err] * this.hiddenLayer[layer].obtained) }
+      for (const layer in this.exitWeights) {
+        console.log('estou aqui ',err,layer)
+        console.log('conta >>>>',this.exitWeights[layer][err],(txAp * error[err] * this.hiddenLayer[layer].obtained),'result',this.exitWeights[layer][err] + (txAp * error[err] * this.hiddenLayer[layer].obtained))
+        this.exitWeights[layer][err] = this.exitWeights[layer][err] + (txAp * error[err] * this.hiddenLayer[layer].obtained)
+      }
     }
   }
 
   generatedWeight (qtdEntries: number, qtdExit: number): void {
-    for (const layer in this.hiddenLayer) {
-      for (let i = 0; i < qtdEntries; i++) { this.hiddenWeights[layer][i] = (-2) + Math.random() * (2 - (-2)) }
+    for (let layer = 0; layer < this.hiddenLayer.length; layer++) {
+      for (let i = 0; i < qtdEntries; i++) {
+        this.hiddenWeights[layer][i] = (-2) + Math.random() * (2 - (-2))
+      }
     }
     for (let i = 0; i < qtdExit; i++) {
       for (const layer in this.hiddenLayer) { this.exitWeights[i][layer] = (-2) + Math.random() * (2 - (-2)) }
